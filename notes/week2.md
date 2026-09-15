@@ -1,8 +1,8 @@
 # Week 2 課堂筆記 — System-Level Diagnosis
 
-**日期**：2026/9/15
-**課程**：書報討論（電子系）
-**講者**：王大進 教授（Montclair State University）
+**日期**：2026/9/15<br>
+**課程**：書報討論（電子系）<br>
+**講者**：王大進 教授（Montclair State University）<br>
 **講題**：System-Level Diagnosis – An Introduction and Recent Results（網路診斷 & 容錯）
 
 ---
