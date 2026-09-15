@@ -45,7 +45,7 @@ Seminar/
 │   ├── week2.md
 │   ├── week3.md
 │   ├── week4.md
-├── report1/
+├── report/
 │   ├── report1.md
 │   └── report2.md
 ```
