@@ -115,16 +115,6 @@ Gas sensor 用於有毒/可燃氣體偵測、車輛與燃燒排放監測，待�
 - **On / Off derivative**：通氣 / 斷氣瞬間的斜率
 - **On / Off integral**：通氣 / 斷氣區段的積分面積
 
-### 缺陷化學 (Defect Chemistry)
-- 螢石結構為 **AX₂ type**，例：CeO₂、CaF₂
-  - Ce⁴⁺：FCC 晶格點位置
-  - O²⁻：所有四面體格隙位置
-- 以 Y₂O₃ 摻雜 CeO₂ 產生**氧空孔**（Kröger–Vink 表示法）：
-
-$$
-\mathrm{Y_2O_3} \xrightarrow{\ 2\,\mathrm{CeO_2}\ } 2\,\mathrm{Y_{Ce}'} + \mathrm{V_O^{\bullet\bullet}} + 3\,\mathrm{O_O^{\times}}
-$$
-
 ---
 
 ## 4. MEMS 氣體感測器設計 (Device Design)
