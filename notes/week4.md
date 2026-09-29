@@ -207,29 +207,7 @@ $$
 
 ---
 
-## 6. 感測機制：銀摻雜氧化鋅薄膜 (Ag/ZnO Sensing Mechanism)
-
-以 H₂S 為例：
-1. 空氣中氧分子吸附於表面並捕獲電子，形成吸附氧離子（電阻上升）
-2. H₂S 與吸附氧反應，電子釋放回導帶（電阻下降）→ 產生響應
-3. Ag₂O、ZnO 與 H₂S 形成硫化物；通入空氣後再氧化回氧化物 → 感測膜可恢復
-
-$$
-\begin{aligned}
-&\mathrm{O_2 + 2e^- \rightarrow 2O^-} && (1)\\
-&\mathrm{2H_2S + 3O_2^- \rightarrow 2H_2O + 2SO_2 + 3e^-} && (2)\\
-&\mathrm{Ag_2O + H_2S \rightarrow Ag_2S + H_2O} && (3)\\
-&\mathrm{ZnO + H_2S \rightarrow ZnS + H_2O} && (4)\\
-&\mathrm{2Ag_2S + 3O_2 \rightarrow 2Ag_2O + 2SO_2} && (5)\\
-&\mathrm{2ZnS + 3O_2 \rightarrow 2ZnO + 2SO_2} && (6)
-\end{aligned}
-$$
-
-> 註：式 (2)～(4) 係數已依原子守恆配平，與投影片略有差異。
-
----
-
-## 7. 性能驗證 (Performance Verification)
+## 6. 性能驗證 (Performance Verification)
 
 於儀科中心氣體量測平台，與國際標竿企業感測器平行比對（溫度約 25 °C、濕度 43～60%）。
 
@@ -273,7 +251,7 @@ $$
 
 ---
 
-## 8. 技術價值主張與核心技術 (Value Proposition & Core Technologies)
+## 7. 技術價值主張與核心技術 (Value Proposition & Core Technologies)
 
 **預防意外感測晶片**：面積 **0.43 mm²**，以團隊自有的**設計、材料、製程**為核心技術。
 
@@ -308,7 +286,7 @@ $$
 
 ---
 
-## 9. 重點總結
+## 8. 重點總結
 
 1. 商用氣體偵測設備昂貴且體積大，MEMS 晶片型感測器朝**微型化、低功耗、高靈敏度**發展，可與固定式感測器互補，實現以「人」為中心的偵測
 2. 氣體感測器三大挑戰：**sensitivity、selectivity、speed of response & stability**
