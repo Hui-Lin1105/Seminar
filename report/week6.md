@@ -371,6 +371,7 @@ $$
 3. 卓世明, 「AI 果園防猴系統：從兩篇論文看碩士研究怎麼做」, 書報討論演講投影片, 2026/10/13.
 
 **相關技術**
+
 4. G. Jocher et al., *Ultralytics YOLOv5*, GitHub repository, 2020. https://github.com/ultralytics/yolov5
 5. Y. Tian, Q. Ye, and D. Doermann, "YOLOv12: Attention-Centric Real-Time Object Detectors," arXiv:2502.12524, 2025.
 6. N. Aharon, R. Orfaig, and B.-Z. Bobrovsky, "BoT-SORT: Robust Associations Multi-Pedestrian Tracking," arXiv:2206.14651, 2022.
