@@ -70,10 +70,6 @@ $$
 - **Q 值只是「目前的估計」**，不代表真實狀況。它是從過去的嘗試累積出來的，沒走過的路徑估計值可能完全不準，所以必須「走了才知道，才能更新策略」。這也說明為什麼需要探索（例如 ε-greedy 偶爾隨機選動作）：只挑目前最大的 Q 值，可能永遠發現不了更好的路。
 - **一般移動報酬為 0 會造成稀疏報酬**：代理人在走到終點或撞牆前得不到任何訊號，大地圖中前期幾乎是盲目探索。終點的 +100 要透過 γ 一格一格往回傳遞，地圖越大傳得越慢。實務上常改成每步給小小的負分（例如 −1），鼓勵走最短路徑。
 
-> **文獻補充**：
-> - Watkins 與 Dayan [3] 證明，在表格式 Q-Learning 中，只要**每個狀態-動作對都被嘗試無限多次**，且學習率隨時間適當遞減，Q 值會以機率 1 收斂到最佳值。這個條件從理論上說明了「透過嘗試去實際學習」的必要性：沒走過的狀態-動作永遠不會被正確估計。
-> - 關於修改報酬，Ng、Harada 與 Russell [7] 提出**位能式報酬塑形**（potential-based reward shaping）：額外報酬若寫成 $F(s, s') = \gamma \Phi(s') - \Phi(s)$ 的形式（Φ 為任意狀態位能函數，例如「與終點距離的負值」），就能加快學習，又**不會改變最佳策略**。隨意加報酬則可能讓代理人學到「刷分」而非完成任務的行為。
-
 #### (3) Deep Q-Network (DQN)：從表格走向神經網路
 Q-Learning 用表格（陣列）存每個狀態-動作的 Q 值。當狀態是影像或連續的感測值時，狀態數量多到表格存不下，DQN 改用神經網路做**函數近似**：
 
@@ -98,10 +94,8 @@ $$
 - 經驗中除了一般的 (s, a, s′, r)，還多了 **ψ、κ** 兩項。從前後文推測，這兩項應該是記錄「是否發生合作停滯」與「合作是否成功」，供下一節的合作模型訓練使用；確切定義需要查閱論文確認。
 
 > **文獻補充**：
-> - **Experience Replay** 最早由 Lin [4] 提出，用來重複利用過去經驗、提高資料效率。
-> - Mnih 等人 [5] 的 DQN 結合 experience replay 與**定期更新的目標網路**，以同一套網路架構與超參數，直接從原始畫面像素學習 49 款 Atari 遊戲，整體表現可與人類專業測試者相比。論文的消融實驗顯示，拿掉 experience replay 或目標網路任何一項，表現都會明顯下降。
-> - van Hasselt 等人 [6] 指出 DQN 在 Atari 上確實存在系統性高估，並提出 Double DQN，把動作的「選擇」與「評估」分開，降低高估並在多款遊戲中取得更好的成績。這就是講者採用的 $y_t^{\text{DDQN}}$。
-> - 在**多代理人**情境下，experience replay 會多一個問題。Foerster 等人 [14] 指出：其他代理人的策略一直在改變，buffer 裡的舊經驗反映的是「隊友過去的行為」，可能已經過時，會誤導學習。他們提出以重要性取樣修正，或在狀態中加入「訓練進度」指紋（fingerprint），讓網路能分辨經驗是在哪個時期收集的。我認為這是無通訊多機器人使用 DQN 時需要注意的地方。
+> - Mnih 等人 [3] 的 DQN 結合 experience replay 與**定期更新的目標網路**，以同一套網路架構與超參數，直接從原始畫面像素學習 49 款 Atari 遊戲，整體表現可與人類專業測試者相比。論文的消融實驗顯示，拿掉 experience replay 或目標網路任何一項，表現都會明顯下降。
+> - van Hasselt 等人 [4] 指出 DQN 在 Atari 上確實存在系統性高估，並提出 Double DQN，把動作的「選擇」與「評估」分開，降低高估並在多款遊戲中取得更好的成績。這就是講者採用的 $y_t^{\text{DDQN}}$。
 
 ---
 
@@ -117,8 +111,6 @@ $$
 
 不同的互動關係，定義了不同的學習目標與回饋機制。本演講的 DCM 研究主要處理**完全合作**的情境。
 
-> **文獻補充**：講者舉例的 Google Research Football [21] 是 Google 推出的足球模擬環境，提供不同難度的完整比賽與「Football Academy」小型情境（例如 3 打 1 進攻），可以控制單一或多名球員，正好兼具「隊內合作、隊間競爭」的特性。
-
 #### (2) 資訊如何在機器人之間流動
 
 | 類型 | 做法 | 優點 | 限制 |
@@ -128,11 +120,6 @@ $$
 | 無通訊（NONE） | 只由自身觀測與回饋學習 | 通訊負擔最低 | 較難推測夥伴意圖，最容易失敗，要不斷嘗試、時間成本高 |
 
 **分析**：完全通訊的「炸掉」來自聯合空間的指數成長。假設每部機器人有 4 個動作，N 部機器人的聯合動作就有 4ᴺ 種：2 部是 16 種，5 部就是 1,024 種，10 部超過 100 萬種。把所有人的狀態與動作拼在一起學，機器人數量一多就學不動了。無通訊雖然避開了這個問題，卻帶來另一個困難：對每部機器人來說，其他機器人也在學習、策略一直改變，等於環境本身一直在變（非平穩性），過去學到的經驗可能很快就不適用。這是無通訊學習「最容易失敗、要一直嘗試」的根本原因。
-
-> **文獻補充**：
-> - Claus 與 Boutilier [9] 很早就比較過兩種學習者：**獨立學習者**（Independent Learners，只看自己的動作，相當於無通訊型）與**聯合動作學習者**（Joint Action Learners，能觀察隊友動作）。他們在協調遊戲中發現，獨立學習者容易收斂到次佳的均衡，也就是大家「各自合理、合起來不好」的結果。
-> - Tan [8] 在掠食者-獵物環境中比較了獨立代理人與會分享資訊（感測、經驗或策略）的合作代理人。分享資訊通常能加快學習，但額外的資訊也會擴大狀態空間，若分享的內容不相關反而拖慢學習。這和講者「部分通訊需設計共享內容與頻率」的說法一致。
-> - 從理論複雜度來看，Bernstein 等人 [15] 證明在多個代理人各自只有局部觀測的**分散式部分可觀測 MDP（Dec-POMDP）**中，求最佳聯合策略屬於 NEXP-complete，比單一代理人的問題難上許多。這從理論上說明了無通訊合作為什麼「最容易失敗」。
 
 講者因此提出的核心問題是：**在不交換代理人訊息的情況下，如何建立合作行為？**
 
@@ -146,7 +133,7 @@ $$
 
 **分析**：非環境型停滯特別有代表性。以三部機器人搬同一個箱子為例，每部都覺得自己選的方向「Q 值最高」，結果三個方向互相抵消，箱子不動。每個人都做了對自己最好的選擇，結果卻對大家都不好，這正是多代理人系統中個體最優不等於群體最優的典型例子。
 
-> **文獻補充**：Matignon 等人 [10] 整理了獨立學習者在合作任務中會遇到的協調問題，可以對應到講者的兩種停滯：
+> **文獻補充**：Matignon 等人 [5] 整理了獨立學習者在合作任務中會遇到的協調問題，可以對應到講者的兩種停滯：
 >
 > | 文獻中的問題 | 說明 | 對應本演講 |
 > |---|---|---|
@@ -215,17 +202,15 @@ DCM 統計「這樣走，會讓群體合作成功還是失敗」，據此更新 
 - **合作值評的是「對群體的結果」，不是個人**：Q 值看的是自己的報酬，C 值看的是群體有沒有停滯。物件有沒有移動是每部機器人都看得到的共同結果，所以即使不通訊，大家也能從同一個現象學到「哪些動作會害大家卡住」。我認為這個可觀察的共同結果，某種程度上取代了通訊的角色。
 - **ADF 的融合方式**：投影片沒有寫出 ADF 的具體公式。常見的做法是把 Q 值乘上 C 值，或兩者加權後再取最大值。若是相乘，C 值接近 0 的動作即使 Q 值很高也幾乎不會被選到，等於「先排除會造成停滯的動作，再從剩下的動作挑對自己最好的」。
 
-> **文獻補充：無通訊合作學習的其他做法**
+> **文獻補充：與其他無通訊合作學習方法比較**
 >
-> 「用兩種不同速度更新」的想法在文獻中已有討論，可以和 DCM 對照：
-> - **Hysteretic Q-learning** [11]：使用兩個學習率，TD 誤差為正（結果比預期好）時用較大的 α，為負（結果比預期差）時用較小的 β。理由是：壞結果可能是**隊友在探索**造成的，不該太快怪罪自己的動作。這是一種「樂觀」的學習方式。
-> - **Lenient learning** [12]：學習初期對低報酬特別「寬容」，忽略大部分壞結果；隨著隊友策略穩定，再逐漸變得嚴格。
-> - **Dec-HDRQN** [13]：Omidshafiei 等人把 hysteretic 的想法帶進深度強化學習，結合循環網路（DRQN）處理部分可觀測問題，並設計讓多個代理人的經驗在時間上對齊的 replay 方式，以穩定無通訊的分散式學習。
+> 「用兩種不同速度更新」的想法在文獻中已有討論，最具代表性的是：
+> - **Hysteretic Q-learning** [6]：使用兩個學習率，TD 誤差為正（結果比預期好）時用較大的 α，為負（結果比預期差）時用較小的 β。理由是：壞結果可能是**隊友在探索**造成的，不該太快怪罪自己的動作。這是一種「樂觀」的學習方式。
 >
-> **與 DCM 的比較**：Hysteretic 與 lenient 方法是在修改「Q 值的更新方式」，讓 Q 值對失敗不要太敏感；DCM 則保留原本的 Q 值，**另外學一個 C 值專門記錄合作的成敗**，兩種資訊分開保存，再由 ADF 融合。對照文獻後，我認為 DCM 的 ρ_l 若設得太大，會遇到 hysteretic 方法想避免的問題：箱子卡住可能是隊友正在隨機探索，而不是自己選錯方向，這時大幅調降自己動作的 C 值就是「錯怪自己」。因此 ρ_l 與 ρ_w 的比例，實際上是在「快速避開停滯」與「容忍隊友探索」之間取捨。
+> **與 DCM 的比較**：Hysteretic 方法是在修改「Q 值的更新方式」，讓 Q 值對失敗不要太敏感；DCM 則保留原本的 Q 值，**另外學一個 C 值專門記錄合作的成敗**，兩種資訊分開保存，再由 ADF 融合。對照文獻後，我認為 DCM 的 ρ_l 若設得太大，會遇到 hysteretic 方法想避免的問題：箱子卡住可能是隊友正在隨機探索，而不是自己選錯方向，這時大幅調降自己動作的 C 值就是「錯怪自己」。因此 ρ_l 與 ρ_w 的比例，實際上是在「快速避開停滯」與「容忍隊友探索」之間取捨。
 >
 > **另一條路線：集中訓練、分散執行（CTDE）**
-> - **VDN** [16] 把團隊的 Q 值拆成各代理人 Q 值的總和 $Q_{tot} = \sum_i Q_i$；**QMIX** [17] 進一步用一個依全域狀態產生權重的混合網路，把各 $Q_i$ 單調地組合成 $Q_{tot}$。兩者都在**訓練時**使用全域資訊、**執行時**各代理人只看自己的觀測。
+> - 目前主流的多代理人方法如 VDN、QMIX，採用「集中訓練、分散執行」：**訓練時**使用全域資訊學習如何把各代理人的 Q 值組合成團隊 Q 值，**執行時**各代理人只看自己的觀測。SMAC 論文 [8] 即以這類方法作為基準。
 > - 和 DCM 相比，CTDE 方法執行時同樣不需要通訊，但**訓練時需要集中式的全域資訊**；DCM 則從訓練到執行都只用局部狀態，更適合「訓練時也無法集中收集資料」的實體多機器人場景。這是我認為 DCM 的定位所在。
 
 ---
@@ -257,8 +242,6 @@ DCM 統計「這樣走，會讓群體合作成功還是失敗」，據此更新 
 - **兩個環境剛好對應兩種停滯**：合作搬運環境有障礙物，主要測試**環境型停滯**（物件被牆擋住）；兩部機器人綁在同一個物件上，方向不一致就會拉扯，也同時測試**非環境型停滯**。掠食者-獵物環境沒有綁在一起，但兩個獵人必須同時到位才有分數，考驗的是「不通訊也能站到不同位置」的分工能力。
 - **兩個環境的報酬都很稀疏**：只有任務完成給 +50，平常移動沒有分數。在不通訊的情況下，兩個代理人要「碰巧」同時做對才拿得到正報酬，前期探索會非常困難。DCM 的停滯判斷剛好提供了額外的學習訊號：還沒成功之前，至少能先學到「哪些動作會造成停滯」，我認為這是 DCM 能加速合作學習的重要原因。
 - **隨機獵物的難度**：獵物有 40% 機率停在原地，每個方向各 15%，四個方向加總 60%，合計 100%。獵物移動不可預測，獵人無法像面對固定矩形軌跡那樣記住路線，必須真正學會根據獵物位置與隊友位置調整，比較能測出策略的泛化能力。
-
-> **文獻補充**：掠食者-獵物是多代理人強化學習最經典的測試環境之一。Tan [8] 在 1993 年就用網格上的掠食者-獵物任務，比較獨立代理人與分享資訊的代理人。講者沿用這個環境，再加上「完全不通訊」的限制，可以直接和這類經典研究對照。至於報酬稀疏的問題，若想加快學習又不改變最佳策略，可參考前面提到的位能式報酬塑形 [7]，例如以「獵人與獵物距離」作為位能函數。
 
 ---
 
@@ -316,8 +299,8 @@ $$
 - **權重會隨狀態改變**：同一個機器人，在離球很遠時「找球」的權重應該最高；拿到球、靠近球門時「射門」的權重應該上升。融合權重由網路依狀態動態產生，而不是固定比例，這是比「規則式切換」更有彈性的地方。
 
 > **文獻補充**：
-> - **Options 框架** [18]：Sutton、Precup 與 Singh 把「可重用的子行為」形式化為 option，每個 option 由三個部分組成：**可啟動的狀態集合**、**執行時的策略**、**終止條件**。高層策略選擇要執行哪個 option，低層策略負責執行，直到終止條件成立。講者的「導航、射門、找球」三個子 DQN，可以看成三個 option 的低層策略。
-> - **專家混合模型（Mixture of Experts）** [19]：Jacobs 等人提出由多個「專家網路」加上一個「門控網路」（gating network）組成的架構，門控網路依輸入決定每個專家的權重，再把專家輸出加權組合，各專家會逐漸專精於輸入空間的不同區域。講者的 NET_FW 依狀態產生 wᵢ、組合各子 DQN 的輸出，結構上就是門控網路的角色。
+> - **Options 框架** [7]：Sutton、Precup 與 Singh 把「可重用的子行為」形式化為 option，每個 option 由三個部分組成：**可啟動的狀態集合**、**執行時的策略**、**終止條件**。高層策略選擇要執行哪個 option，低層策略負責執行，直到終止條件成立。講者的「導航、射門、找球」三個子 DQN，可以看成三個 option 的低層策略。
+> - **專家混合模型（Mixture of Experts）**：由多個「專家網路」加上一個「門控網路」（gating network）組成的架構，門控網路依輸入決定每個專家的權重，再把專家輸出加權組合，各專家會逐漸專精於輸入空間的不同區域。講者的 NET_FW 依狀態產生 wᵢ、組合各子 DQN 的輸出，結構上就是門控網路的角色。
 > - 兩者的差別在於：options 通常是**一次選一個**子行為執行到結束（硬切換），專家混合則是**同時加權組合**所有專家（軟融合）。講者的 a_final = Σwᵢaᵢ 屬於後者，好處是轉換平滑，例如「一邊靠近球門、一邊避開對手」可以同時進行；代價是多個子行為的建議互相衝突時，加權平均出來的動作可能哪個都不像。
 
 #### (5) 星海爭霸 (StarCraft II) 場景
@@ -329,7 +312,7 @@ $$
 
 **分析**：這兩個場景都來自多代理人強化學習常用的 SMAC 基準環境，特點是**我方人數比敵方少一人**。在兵力劣勢下，各單位單純對最近的敵人開火通常會輸，必須學會集中火力先擊倒同一個目標、讓血量低的單位後退等協同戰術。這類場景很適合拿來驗證「個體最優不等於群體最優」：只追求自己的 Q 值注定失敗，必須有合作機制才能贏。
 
-> **文獻補充**：SMAC（StarCraft Multi-Agent Challenge）[20] 由 Samvelyan 等人提出，專注於星海爭霸 II 的「微操作」：每個單位由一個獨立代理人控制，只能看到自己視野範圍內的資訊，屬於典型的分散式、部分可觀測合作任務。SMAC 依難度把地圖分成 easy、hard、super hard 等級，5m_vs_6m 與 8m_vs_9m 都被列為 **hard**。VDN [16]、QMIX [17] 等 CTDE 方法都以 SMAC 作為主要評測基準，因此講者在這個環境上的結果，可以直接和這些主流方法比較。
+> **文獻補充**：SMAC（StarCraft Multi-Agent Challenge）[8] 由 Samvelyan 等人提出，專注於星海爭霸 II 的「微操作」：每個單位由一個獨立代理人控制，只能看到自己視野範圍內的資訊，屬於典型的分散式、部分可觀測合作任務。SMAC 依難度把地圖分成 easy、hard、super hard 等級，5m_vs_6m 與 8m_vs_9m 都被列為 **hard**。VDN、QMIX 等 CTDE 方法都以 SMAC 作為主要評測基準，因此講者在這個環境上的結果，可以直接和這些主流方法比較。
 
 ---
 
@@ -362,7 +345,15 @@ $$
 
 ## 三、心得報告 (Reflections)
 
-<!-- 待補 -->
+以前多機器人學習是一個很小眾的研究題目，但科技的進步與發展非常快速，如今這個題目已經是許多人投入研究的領域。對於還沒接觸過機器人的我來說，這場演講讓我認識了一個新的領域，原來機器人是這樣去學習的。
+
+演講從強化學習最基本的概念講起，讓我對「機器人怎麼學習」有了比較具體的理解。機器人一開始並不知道哪個動作是對的、哪個是錯的，只能先嘗試做看看，把動作交給環境，「走了才知道」結果好不好，再根據回饋更新策略。Q-Learning 雖然會依當下估計的好壞去選擇動作，但這個估計並不代表真實狀況，只有透過不斷嘗試、實際累積經驗，估計才會越來越準。這和我們平常學習新事物的過程其實很像，不是一開始就知道答案，而是從錯誤中修正。
+
+讓我印象最深刻的是「合作停滯」這個問題。以前我會直覺地認為，只要每部機器人都做出對自己最好的選擇，整體結果自然就會好；但講者用合作搬運的例子說明，當每部機器人各自選了自己 Q 值最高的方向，箱子反而會被拉扯、卡住不動。講者的解法不是讓機器人彼此通訊，因為完全通訊在資訊量太大時就可能炸掉，而是讓每部機器人額外學一個「合作值」：統計這樣走，會讓群體合作成功還是失敗，評估的對象是群體而不是個人。我覺得這個想法很巧妙，在無法溝通的情況下，透過觀察共同的結果，機器人也能慢慢形成默契。
+
+另外，階層式學習也讓我有很大的收穫。把踢足球這種複雜任務拆成導航、找球、射門等子行為，各自訓練後再用融合網路依情況調整權重，比起讓單一策略一次學會全部技能更有效率。這讓我聯想到做研究或寫程式時，把大問題拆成小問題、一個模組一個模組完成的做法，道理其實是相通的。
+
+整體來說，這場演講讓我看到多機器人系統從個體學習走向群體合作的完整脈絡，也讓我理解到無通訊的合作雖然最困難、最容易失敗，需要花費大量時間反覆嘗試，卻也最貼近真實環境中通訊受限的情況。雖然目前我的研究方向和機器人沒有直接關係，但「拆解問題」與「從結果回推、調整策略」這兩個觀念，我相信在未來的研究中都能派上用場。
 
 ---
 
@@ -374,41 +365,14 @@ $$
 
 ## 五、參考文獻 (References)
 
-**演講資料**
-
-[1] 蔣惟丞, 「深度強化學習於多機器人系統學習與控制」, 書報討論演講投影片, 國立中正大學電機工程學系 智慧學習系統與決策智慧實驗室, 2026/10/20.
-
-**強化學習基礎**
-
+[1] 蔣惟丞, 「深度強化學習於多機器人系統學習與控制」, 書報討論演講投影片, 國立中正大學電機工程學系 智慧學習系統與決策智慧實驗室, 2026/10/20.<br>
 [2] R. S. Sutton and A. G. Barto, *Reinforcement Learning: An Introduction*, 2nd ed. Cambridge, MA: MIT Press, 2018.<br>
-[3] C. J. C. H. Watkins and P. Dayan, "Q-learning," *Machine Learning*, vol. 8, no. 3–4, pp. 279–292, 1992.<br>
-[4] L.-J. Lin, "Self-improving reactive agents based on reinforcement learning, planning and teaching," *Machine Learning*, vol. 8, pp. 293–321, 1992.<br>
-[5] V. Mnih et al., "Human-level control through deep reinforcement learning," *Nature*, vol. 518, pp. 529–533, 2015.<br>
-[6] H. van Hasselt, A. Guez, and D. Silver, "Deep reinforcement learning with double Q-learning," in *Proc. AAAI*, 2016.<br>
-[7] A. Y. Ng, D. Harada, and S. Russell, "Policy invariance under reward transformations: Theory and application to reward shaping," in *Proc. ICML*, 1999, pp. 278–287.
-
-**多代理人合作學習**
-
-[8] M. Tan, "Multi-agent reinforcement learning: Independent vs. cooperative agents," in *Proc. ICML*, 1993, pp. 330–337.<br>
-[9] C. Claus and C. Boutilier, "The dynamics of reinforcement learning in cooperative multiagent systems," in *Proc. AAAI*, 1998, pp. 746–752.<br>
-[10] L. Matignon, G. J. Laurent, and N. Le Fort-Piat, "Independent reinforcement learners in cooperative Markov games: a survey regarding coordination problems," *The Knowledge Engineering Review*, vol. 27, no. 1, pp. 1–31, 2012.<br>
-[11] L. Matignon, G. J. Laurent, and N. Le Fort-Piat, "Hysteretic Q-learning: an algorithm for decentralized reinforcement learning in cooperative multi-agent teams," in *Proc. IEEE/RSJ IROS*, 2007, pp. 64–69.<br>
-[12] L. Panait, K. Tuyls, and S. Luke, "Theoretical advantages of lenient learners: An evolutionary game theoretic perspective," *Journal of Machine Learning Research*, vol. 9, pp. 423–457, 2008.<br>
-[13] S. Omidshafiei, J. Pazis, C. Amato, J. P. How, and J. Vian, "Deep decentralized multi-task multi-agent reinforcement learning under partial observability," in *Proc. ICML*, 2017, pp. 2681–2690.<br>
-[14] J. Foerster et al., "Stabilising experience replay for deep multi-agent reinforcement learning," in *Proc. ICML*, 2017, pp. 1146–1155.<br>
-[15] D. S. Bernstein, R. Givan, N. Immerman, and S. Zilberstein, "The complexity of decentralized control of Markov decision processes," *Mathematics of Operations Research*, vol. 27, no. 4, pp. 819–840, 2002.<br>
-[16] P. Sunehag et al., "Value-decomposition networks for cooperative multi-agent learning based on team reward," in *Proc. AAMAS*, 2018, pp. 2085–2087.<br>
-[17] T. Rashid et al., "QMIX: Monotonic value function factorisation for deep multi-agent reinforcement learning," in *Proc. ICML*, 2018, pp. 4295–4304.
-
-**階層式學習與行為融合**
-
-[18] R. S. Sutton, D. Precup, and S. Singh, "Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning," *Artificial Intelligence*, vol. 112, no. 1–2, pp. 181–211, 1999.<br>
-[19] R. A. Jacobs, M. I. Jordan, S. J. Nowlan, and G. E. Hinton, "Adaptive mixtures of local experts," *Neural Computation*, vol. 3, no. 1, pp. 79–87, 1991.
-
-**實驗環境**
-
-[20] M. Samvelyan et al., "The StarCraft Multi-Agent Challenge," in *Proc. AAMAS*, 2019 (arXiv:1902.04043).<br>
-[21] K. Kurach et al., "Google Research Football: A novel reinforcement learning environment," in *Proc. AAAI*, 2020.
+[3] V. Mnih et al., "Human-level control through deep reinforcement learning," *Nature*, vol. 518, pp. 529–533, 2015.<br>
+[4] H. van Hasselt, A. Guez, and D. Silver, "Deep reinforcement learning with double Q-learning," in *Proc. AAAI*, 2016.<br>
+[5] L. Matignon, G. J. Laurent, and N. Le Fort-Piat, "Independent reinforcement learners in cooperative Markov games: a survey regarding coordination problems," *The Knowledge Engineering Review*, vol. 27, no. 1, pp. 1–31, 2012.<br>
+[6] L. Matignon, G. J. Laurent, and N. Le Fort-Piat, "Hysteretic Q-learning: an algorithm for decentralized reinforcement learning in cooperative multi-agent teams," in *Proc. IEEE/RSJ IROS*, 2007, pp. 64–69.<br>
+[7] R. S. Sutton, D. Precup, and S. Singh, "Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning," *Artificial Intelligence*, vol. 112, no. 1–2, pp. 181–211, 1999.<br>
+[8] M. Samvelyan et al., "The StarCraft Multi-Agent Challenge," in *Proc. AAMAS*, 2019 (arXiv:1902.04043).
 
 ---
 
